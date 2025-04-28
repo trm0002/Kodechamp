@@ -1,0 +1,139 @@
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kodechamp Spil Vælger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Sæt fuld skærm */
+        html, body {
+            width: 100%; height: 100%; margin: 0; padding: 0;
+            background-color: black; overflow: hidden;
+            display: flex; justify-content: flex-start; align-items: stretch;
+            font-family: 'Press Start 2P', cursive; font-size: 16px; line-height: 1.6;
+            color: #7887FF; cursor: default;
+        }
+        .loadstar-container {
+            display: flex; flex-direction: column; align-items: center;
+            width: 100%; height: 100%; text-align: center; padding: 0;
+        }
+        .title-line {
+            height: 6px; background-color: #6C6C6C; width: 100%; margin: 4px 0;
+            border-top: 2px solid #A0A0A0; border-bottom: 2px solid #404040;
+        }
+        .title-wrapper {
+            display: flex; align-items: center; justify-content: center;
+            margin: 20px 0 0 0; width: 100%; position: relative;
+        }
+        /* Animations for C64-inspired color pulse */
+        @keyframes barPulse {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.4; }
+        }
+        .rainbow-bars { display: flex; flex-direction: column; margin: 0 25px; }
+        .rainbow-bar {
+            width: 70px; height: 9px; margin: 1px 0;
+            animation: barPulse 1s infinite ease-in-out;
+        }
+        .rainbow-bar:nth-child(1) { background-color: #904040; animation-delay: 0s; }
+        .rainbow-bar:nth-child(2) { background-color: #AA7448; animation-delay: 0.2s; }
+        .rainbow-bar:nth-child(3) { background-color: #FFFF78; animation-delay: 0.4s; }
+        .rainbow-bar:nth-child(4) { background-color: #68B470; animation-delay: 0.6s; }
+        .rainbow-bar:nth-child(5) { background-color: #7887FF; animation-delay: 0.8s; }
+        .main-title {
+            font-size: 4em; color: white; text-shadow: 3px 3px 0px #404040;
+            letter-spacing: 2px; white-space: nowrap;
+            /* Næste linje kan tilføje animation for glød om ønsket */
+        }
+        .extra-lives-text { color: #7887FF; font-size: 1em; margin: 4px 0; padding: 0; }
+        .system-info { color: #AAAAAA; font-size: 0.9em; margin: 2px 0 8px 0; }
+        .subtitle { color: white; font-size: 1.3em; margin: 30px 0; }
+        #game-list {
+            width: 80%; flex-grow: 1;
+            display: flex; flex-direction: column; justify-content: center;
+            margin-bottom: 40px;
+        }
+        .game-item {
+            padding: 0.3em 0; text-align: center; position: relative;
+            color: #7887FF; font-size: 1.1em; margin: 7px 0;
+            transition: color 0.1s;
+        }
+        .game-item.selected { color: #FFFF78; }
+        .game-item.selected::before {
+            content: '>'; position: absolute; left: 12%; top: 50%; transform: translateY(-50%);
+            color: #FFFF78; font-weight: bold;
+        }
+        .game-item.selected::after {
+            content: '<'; position: absolute; right: 12%; top: 50%; transform: translateY(-50%);
+            color: #FFFF78; font-weight: bold;
+        }
+        .instructions-box { border: 3px solid white; padding: 15px 30px; margin: 20px 0; }
+        .instructions { color: white; font-size: 1em; margin: 6px 0; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="loadstar-container">
+        <div class="title-line"></div>
+        <div class="title-line" style="height: 4px;"></div>
+
+        <div class="title-wrapper">
+            <div class="rainbow-bars">
+                <div class="rainbow-bar"></div>
+                <div class="rainbow-bar"></div>
+                <div class="rainbow-bar"></div>
+                <div class="rainbow-bar"></div>
+                <div class="rainbow-bar"></div>
+            </div>
+            <div class="main-title">KODECHAMP</div>
+            <div class="rainbow-bars">
+                <div class="rainbow-bar"></div>
+                <div class="rainbow-bar"></div>
+                <div class="rainbow-bar"></div>
+                <div class="rainbow-bar"></div>
+                <div class="rainbow-bar"></div>
+            </div>
+        </div>
+
+        <p class="extra-lives-text">Lavet med ønske om uendelige ekstraliv til alle!</p>
+        <p class="system-info">Commodore 64, 64Kbyte Ram, 1982</p>
+
+        <div class="title-line" style="height: 4px;"></div>
+        <div class="title-line"></div>
+
+        <p class="subtitle">Vælg dit spil:</p>
+
+        <div id="game-list">
+            <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Bob%20on%20the%20Run2.html">BOB ON THE RUN</div>
+            <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/space%20invaders%20SPILLEMASKINE5.html">SPACE INVADERS</div>
+            <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Rocket-lander%20spillemaskine5.html">ROCKET LANDER</div>
+            <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Incursio%20SPILLEMASKINE5.html">INCURSIO</div>
+            <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/THE%20RUNNING%20GLIZZY%20SPILLEMASKINE5.html">RUNNING GLIZZY</div>
+        </div>
+
+        <div class="instructions-box">
+            <p class="instructions">Vælg med Joysticket</p>
+            <p class="instructions">Rød knap = start/afslut spil</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameItems = document.querySelectorAll('#game-list .game-item');
+            let selectedIndex = 0;
+            function updateSelection() { gameItems.forEach((item, i) => item.classList.toggle('selected', i === selectedIndex)); }
+            function launchSelectedGame() { const url = gameItems[selectedIndex].getAttribute('data-url'); if (url) window.open(url, '_blank'); }
+            document.addEventListener('keydown', e => {
+                if (['ArrowUp', 'ArrowDown'].includes(e.key)) {
+                    e.preventDefault();
+                    selectedIndex = e.key === 'ArrowUp' ? Math.max(0, selectedIndex - 1) : Math.min(gameItems.length - 1, selectedIndex + 1);
+                    updateSelection();
+                }
+            });
+            document.addEventListener('click', launchSelectedGame);
+            updateSelection();
+        });
+    </script>
+</body>
+</html>
