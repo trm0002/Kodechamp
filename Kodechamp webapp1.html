@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kodechamp Spil Vælger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Grundlæggende C64 stil */
+        body {
+            background-color: black;
+            color: #7887FF;
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.6;
+            cursor: default;
+            overflow: hidden;
+        }
+
+        .loadstar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 85%;
+            max-width: 1000px;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .title-line {
+            height: 6px;
+            background-color: #6C6C6C;
+            width: 100%;
+            margin: 4px 0;
+            border-top: 2px solid #A0A0A0;
+            border-bottom: 2px solid #404040;
+        }
+
+        .title-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 40px 0 0 0; /* Beholder top-margin, fjerner bund */
+            width: 100%;
+        }
+
+        .rainbow-bars {
+            display: flex;
+            flex-direction: column;
+            margin: 0 25px;
+        }
+        .rainbow-bar {
+            width: 70px;
+            height: 9px;
+            margin: 1px 0;
+        }
+        .bar-red    { background-color: #904040; }
+        .bar-orange { background-color: #AA7448; }
+        .bar-yellow { background-color: #FFFF78; }
+        .bar-green  { background-color: #68B470; }
+        .bar-blue   { background-color: #7887FF; }
+
+        .main-title {
+            font-size: 4em;
+            color: white;
+            text-shadow: 3px 3px 0px #404040;
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        .extra-lives-text {
+            color: #7887FF;
+            font-size: 1em;
+            margin: 4px 0; /* Minimal afstand til linjer */
+            padding: 0;
+        }
+
+        .subtitle {
+            color: white;
+            font-size: 1.3em;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        #game-list {
+             width: 80%;
+             margin-bottom: 40px;
+        }
+        .game-item {
+            padding: 0.3em 0;
+            text-align: center;
+            position: relative;
+            color: #7887FF;
+            font-size: 1.1em;
+            margin: 7px 0;
+            transition: color 0.1s;
+        }
+        .game-item.selected {
+            color: #FFFF78;
+        }
+        .game-item.selected::before {
+            content: '>';
+            position: absolute;
+            left: 12%; top: 50%; transform: translateY(-50%);
+            color: #FFFF78; font-weight: bold;
+        }
+        .game-item.selected::after {
+            content: '<';
+            position: absolute;
+            right: 12%; top: 50%; transform: translateY(-50%);
+            color: #FFFF78; font-weight: bold;
+        }
+
+        .instructions-box {
+            border: 3px solid white;
+            padding: 15px 30px;
+            margin-top: 40px;
+            display: inline-block;
+        }
+        .instructions {
+            color: white;
+            font-size: 1em;
+            margin: 6px 0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="loadstar-container">
+
+        <div class="title-line"></div>
+        <div class="title-line" style="height: 4px;"></div>
+
+        <div class="title-wrapper">
+            <div class="rainbow-bars">
+                <div class="rainbow-bar bar-red"></div>
+                <div class="rainbow-bar bar-orange"></div>
+                <div class="rainbow-bar bar-yellow"></div>
+                <div class="rainbow-bar bar-green"></div>
+                <div class="rainbow-bar bar-blue"></div>
+            </div>
+            <div class="main-title">KODECHAMP</div>
+            <div class="rainbow-bars">
+                <div class="rainbow-bar bar-red"></div>
+                <div class="rainbow-bar bar-orange"></div>
+                <div class="rainbow-bar bar-yellow"></div>
+                <div class="rainbow-bar bar-green"></div>
+                <div class="rainbow-bar bar-blue"></div>
+            </div>
+        </div>
+
+        <!-- Rykket direkte under overskrift -->
+        <p class="extra-lives-text">Lavet med ønske om ekstraliv til alle</p>
+
+        <!-- Linjer under teksten -->
+        <div class="title-line" style="height: 4px;"></div>
+        <div class="title-line"></div>
+
+        <p class="subtitle">Vælg dit spil:</p>
+
+        <div id="game-list">
+            <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Bob%20on%20the%20Run2.html">BOB ON THE RUN</div>
+            <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/space%20invaders%20SPILLEMASKINE5.html">SPACE INVADERS</div>
+            <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Rocket-lander%20spillemaskine5.html">ROCKET LANDER</div>
+            <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Incursio%20SPILLEMASKINE5.html">INCURSIO</div>
+            <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/THE%20RUNNING%20GLIZZY%20SPILLEMASKINE5.html">RUNNING GLIZZY</div>
+        </div>
+
+        <div class="instructions-box">
+            <p class="instructions">Vælg med Joysticket</p>
+            <p class="instructions">Rød knap = start/afslut spil</p>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameItems = document.querySelectorAll('#game-list .game-item');
+            let selectedIndex = 0;
+            function updateSelection() { gameItems.forEach((item, i) => item.classList.toggle('selected', i===selectedIndex)); }
+            function launchSelectedGame() { const url = gameItems[selectedIndex].getAttribute('data-url'); if(url) window.open(url,'_blank'); }
+            document.addEventListener('keydown', e => {
+                if(['ArrowUp','ArrowDown'].includes(e.key)){
+                    e.preventDefault(); selectedIndex = e.key==='ArrowUp'? Math.max(0,selectedIndex-1): Math.min(gameItems.length-1,selectedIndex+1);
+                    updateSelection();
+                }
+            });
+            document.addEventListener('click', launchSelectedGame);
+            updateSelection();
+        });
+    </script>
+</body>
+</html>
