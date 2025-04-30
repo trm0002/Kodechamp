@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kodechamp Spil Vælger - C64 Retro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    /* ---------- RETRO EFFECTS ---------- */
+    /* Scanlines overlay */
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; /* Gør laget ikke-interaktivt */
+      background-image: linear-gradient(rgba(0,0,0,0.1) 50%, transparent 50%);
+      background-size: 100% 4px; /* Tykkelse af scanlines */
+      z-index: 9998; /* Placeres over indhold, men under støj/flicker */
+    }
+
+    /* CRT-noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      /* Lille gennemsigtig PNG bruges til at skabe støj-tekstur */
+      background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z/D/PwAGgwJ/lz3DzQAAAABJRU5ErkJggg==') repeat;
+      opacity: 0.05; /* Juster styrken af støjen */
+      animation: noise 0.2s steps(2) infinite; /* Animerer støjen for livagtighed */
+      z-index: 9999; /* Placeres øverst */
+    }
+
+    @keyframes noise {
+      0% { transform: translate(0,0); opacity: 0.05; }
+      50% { transform: translate(-5px,5px); opacity: 0.1; } /* Flytter støjlaget lidt */
+      100% { transform: translate(0,0); opacity: 0.05; }
+    }
+
+    /* Vignette (mørke kanter) */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      /* Radial gradient skaber mørkere kanter */
+      background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.7) 100%);
+      z-index: 9997; /* Placeres lige under scanlines */
+    }
+
+    /* ---------- C64 LAYOUT & STYLING ---------- */
+
+    /* Animation for blinkende markør */
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    html {
+      height: 100%; /* Sørg for at html fylder hele højden */
+    }
+
+    body {
+      width: 100%; height: 100%; margin: 0;
+      /* C64 Kant Farve */
+      background-color: #B8C8FF;
+      /* Tilføj padding for at skabe kanten */
+      padding: 25px; /* Juster tykkelsen af kanten her */
+      box-sizing: border-box; /* Sørg for padding inkluderes i total bredde/højde */
+      overflow: hidden; /* Skjuler scrollbars */
+      display: flex; /* Bruges til at centrere containeren */
+      justify-content: center; /* Centrerer vandret */
+      align-items: center; /* Centrerer lodret */
+      font-family: 'Press Start 2P', cursive; /* Retro font */
+      font-size: 16px;
+      line-height: 1.6;
+      /* Standard tekst farve ændret til C64 lys blå for bedre kontrast på mørkeblå */
+      color: #B8C8FF;
+      cursor: default; /* Standard cursor */
+      position: relative; /* Nødvendig for z-index på overlays */
+    }
+
+    .loadstar-container {
+      display: flex; flex-direction: column; align-items: center;
+      /* C64 Skærm Baggrundsfarve */
+      background-color: #4050E0;
+      width: 100%; height: 100%; /* Fyld body's padding område */
+      max-width: 1000px; /* Maks bredde for at undgå for bredt layout på store skærme */
+      max-height: 800px; /* Maks højde */
+      text-align: center;
+      padding: 20px; /* Lidt intern padding */
+      box-sizing: border-box;
+      border: 2px solid #20288E; /* Mørkere blå kant om selve skærmen */
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.5); /* Indre skygge for dybde */
+    }
+
+    /* Dekorative linjer øverst - justeret farver til C64 palet */
+    .title-line {
+      height: 6px; background: #6C6C6C; width: 100%; margin: 4px 0;
+      border-top: 2px solid #A0A0A0; border-bottom: 2px solid #404040;
+    }
+    .title-line[style] { height: 4px; }
+
+    .title-wrapper {
+      display: flex; align-items: center; justify-content: center;
+      margin: 15px 0 0 0; width: 100%; /* Lidt mindre margin top */
+    }
+
+    /* Animation for titel farveskift - justeret til C64 farver */
+    @keyframes titleColorCycle {
+      0%, 100% { color: #FFFFFF; } /* Hvid */
+      20% { color: #904040; } /* Rød */
+      40% { color: #AA7448; } /* Brun */
+      60% { color: #68B470; } /* Grøn */
+      80% { color: #B8C8FF; } /* Lys Blå */
+    }
+
+    /* Animation for regnbue-bjælker puls */
+    @keyframes barPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .rainbow-bars {
+      display: flex; flex-direction: column; margin: 0 25px;
+    }
+
+    .rainbow-bar {
+      width: 70px; height: 9px; margin: 1px 0;
+      animation: barPulse 1s infinite ease-in-out;
+    }
+    /* Farver til regnbue-bjælker (Holdt som de var, da de er Loadstar-inspirerede) */
+    .rainbow-bar:nth-child(1){background:#904040;}
+    .rainbow-bar:nth-child(2){background:#AA7448;}
+    .rainbow-bar:nth-child(3){background:#FFFF78;} /* Gul */
+    .rainbow-bar:nth-child(4){background:#68B470;}
+    .rainbow-bar:nth-child(5){background:#7887FF;} /* Original Blå */
+
+    .main-title {
+      font-size: 3.5em; /* Lidt mindre for at passe bedre */
+      text-shadow: 3px 3px 0 #20288E; /* Mørkere blå skygge */
+      letter-spacing: 2px; white-space: nowrap;
+      animation: titleColorCycle 5s infinite ease-in-out;
+    }
+
+    .extra-lives-text {
+      color: #B8C8FF; /* Lys blå */
+      font-size: 0.9em; /* Lidt mindre */
+      margin: 4px 0;
+    }
+
+    /* Container til rullende tekst */
+    .scrolling-container {
+      width: 100%; overflow: hidden; height: 1.2em; margin: 4px 0;
+      border-top: 2px solid #B8C8FF; /* Linje over */
+      border-bottom: 2px solid #B8C8FF; /* Linje under */
+      padding: 4px 0;
+    }
+
+    /* Rullende tekst (marquee) styling */
+    marquee.system-info {
+      display: block; color: #FFFFFF; /* Hvid tekst */
+      font-size: 0.9em;
+    }
+
+    .subtitle {
+      color: #FFFFFF; /* Hvid */
+      font-size: 1.2em; /* Lidt mindre */
+      margin: 20px 0 15px 0; /* Justeret margin */
+    }
+
+    /* Spil liste styling */
+    #game-list {
+      width: 90%; /* Lidt bredere */
+      height: calc(4 * 1.8em + 4 * 7px); /* Justeret højde til mindre font */
+      overflow-y: auto;
+      margin-bottom: 25px; /* Mindre margin bund */
+      scrollbar-width: none;
+    }
+    #game-list::-webkit-scrollbar { display: none; }
+
+    .game-item {
+      padding: 0.2em 0; /* Mindre padding */
+      text-align: center; position: relative;
+      color: #B8C8FF; /* Lys blå */
+      font-size: 1em; /* Lidt mindre font */
+      margin: 7px 0; height: 1.8em; line-height: 1.8em;
+      transition: color 0.1s;
+    }
+
+    /* Styling for det valgte spil */
+    .game-item.selected {
+      color: #FFFF78; /* Gul farve for valgt */
+    }
+    /* Fjern > og < pile */
+    .game-item.selected::before {
+      content: ''; /* Tomt indhold */
+      display: inline-block; /* Gør det muligt at sætte bredde/højde */
+      width: 0.7em; /* Bredde på markøren */
+      height: 1em; /* Højde på markøren */
+      background-color: #FFFF78; /* Gul farve */
+      margin-right: 0.7em; /* Afstand til teksten */
+      vertical-align: middle; /* Centrer lodret */
+      /* Anvend blink animation */
+      animation: blink 1s steps(1) infinite;
+      position: absolute; /* Position ift. game-item */
+      left: 10%; /* Juster position */
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .game-item.selected::after {
+        content: ''; /* Fjern højre pil */
+    }
+
+
+    /* Boks til instruktioner */
+    .instructions-box {
+      border: 3px solid #B8C8FF; /* Lys blå kant */
+      padding: 10px 20px; /* Mindre padding */
+      margin: 15px 0 0 0; /* Justeret margin */
+    }
+    .instructions {
+      color: #FFFFFF; /* Hvid tekst */
+      font-size: 0.9em; /* Lidt mindre */
+      margin: 4px 0; line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="loadstar-container">
+    <div class="title-line"></div>
+    <div class="title-line" style="height:4px;"></div>
+
+    <div class="title-wrapper">
+      <div class="rainbow-bars">
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+      </div>
+      <div class="main-title">KODECHAMP</div>
+      <div class="rainbow-bars">
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+      </div>
+    </div>
+    <p class="extra-lives-text">PIXELART, PROGRAMMERING OG MASSER AF POWERUPS!</p>
+
+    <div class="scrolling-container">
+      <marquee class="system-info" scrollamount="6" scrolldelay="0" behavior="scroll" direction="left" loop="infinite">
+        Bliv årets KODECHAMP og deltag i årets sejeste konkurrence for 5.-9.kl. i retro spildesign, pixelartgrafik og programmering i Scratch. Vind fede præmier!      Er du pædagog/lærer? Så deltag i voksenkategorien - Tør du?        Skabt med ønske om uendelige ekstraliv til alle!
+      </marquee>
+    </div>
+
+    <div class="title-line" style="height:4px;"></div>
+    <div class="title-line"></div>
+
+    <p class="subtitle">Vælg dit spil:</p>
+    <div id="game-list">
+      <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Bob%20on%20the%20Run2.html">BOB ON THE RUN</div>
+      <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/space%20invaders%20SPILLEMASKINE5.html">SPACE INVADERS</div>
+      <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Rocket-lander%20spillemaskine5.html">ROCKET LANDER</div>
+      <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Incursio%20SPILLEMASKINE5.html">INCURSIO</div>
+      <div class="game-item" data-url="https://readonly/GitHack/RunningGlizzy.html">RUNNING GLIZZY</div>
+      </div>
+
+    <div class="instructions-box">
+      <p class="instructions">Vælg med Joysticket</p>
+      <p class="instructions">Rød knap = start/afslut spil</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const gameList = document.getElementById('game-list');
+      const gameItems = Array.from(gameList.querySelectorAll('.game-item'));
+      let selectedIndex = 0; // Holder styr på hvilket spil der er valgt
+
+      // Funktion til at opdatere visningen af det valgte spil
+      function updateSelection() {
+        gameItems.forEach((item, i) => {
+          // Tilføj/fjern 'selected' klassen baseret på selectedIndex
+          item.classList.toggle('selected', i === selectedIndex);
+        });
+        // Sørg for at det valgte spil er synligt i scroll-området
+        gameItems[selectedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' }); // Tilføjet smooth scroll
+      }
+
+      // Funktion til at starte det valgte spil
+      function launchSelectedGame() {
+        const url = gameItems[selectedIndex].getAttribute('data-url');
+        if (url) {
+          // Åbn spillets URL i en ny fane/vindue
+          window.open(url, '_blank');
+        }
+      }
+
+      // Lyt efter tastetryk (piletaster) for navigation
+      document.addEventListener('keydown', e => {
+        if (['ArrowUp', 'ArrowDown'].includes(e.key)) {
+          e.preventDefault(); // Forhindrer standard browser scroll
+          // Opdater selectedIndex baseret på piletast
+          selectedIndex = e.key === 'ArrowUp' ? Math.max(0, selectedIndex - 1) : Math.min(gameItems.length - 1, selectedIndex + 1);
+          updateSelection(); // Opdater visningen
+        }
+        // Tilføjet 'Enter' for at starte spillet
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Forhindrer evt. standard handling
+            launchSelectedGame();
+        }
+      });
+
+      // Lyt efter klik for at starte spillet (simulerer "Rød knap")
+      // Gør det mere specifikt - start kun hvis man klikker på et spil item
+      gameList.addEventListener('click', (e) => {
+          const clickedItem = e.target.closest('.game-item');
+          if (clickedItem) {
+              const index = gameItems.indexOf(clickedItem);
+              if (index !== -1) {
+                  selectedIndex = index; // Opdater valgt indeks ved klik
+                  updateSelection(); // Opdater visning
+                  launchSelectedGame(); // Start spillet
+              }
+          }
+      });
+
+
+      // Sæt det første spil som valgt ved start
+      updateSelection();
+    });
+  </script>
+</body>
+</html>
