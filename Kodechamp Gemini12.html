@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kodechamp Spil Vælger - C64 Retro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    /* ---------- RETRO EFFECTS ---------- */
+    /* Scanlines overlay */
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; /* Gør laget ikke-interaktivt */
+      background-image: linear-gradient(rgba(0,0,0,0.1) 50%, transparent 50%);
+      background-size: 100% 4px; /* Tykkelse af scanlines */
+      z-index: 9998; /* Placeres over indhold, men under støj/flicker */
+    }
+
+    /* CRT-noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      /* Lille gennemsigtig PNG bruges til at skabe støj-tekstur */
+      background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z/D/PwAGgwJ/lz3DzQAAAABJRU5ErkJggg==') repeat;
+      opacity: 0.05; /* Juster styrken af støjen */
+      animation: noise 0.2s steps(2) infinite; /* Animerer støjen for livagtighed */
+      z-index: 9999; /* Placeres øverst */
+    }
+
+    @keyframes noise {
+      0% { transform: translate(0,0); opacity: 0.05; }
+      50% { transform: translate(-5px,5px); opacity: 0.1; } /* Flytter støjlaget lidt */
+      100% { transform: translate(0,0); opacity: 0.05; }
+    }
+
+    /* Overall screen flicker - FJERNET SOM ØNSKET */
+    /*
+    @keyframes flicker {
+      0%, 19.9%, 22%, 62.9%, 64%, 100% { opacity: 1; }
+      20%, 21.9%, 63%, 63.9% { opacity: 0.8; }
+    }
+    html { animation: flicker 1.5s infinite; }
+    */
+
+    /* Vignette (mørke kanter) */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      /* Radial gradient skaber mørkere kanter */
+      background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.7) 100%);
+      z-index: 9997; /* Placeres lige under scanlines */
+    }
+
+    /* ---------- ORIGINAL LAYOUT ---------- */
+    html, body {
+      width:100%; height:100%; margin:0; padding:0;
+      background:black; overflow:hidden; /* Skjuler scrollbars */
+      display:flex; justify-content:flex-start; align-items:stretch; /* Flexbox til layout */
+      font-family:'Press Start 2P', cursive; /* Retro font */
+      font-size:16px; line-height:1.6; color:#7887FF; /* Standard tekst farve (C64 blå) */
+      cursor:default; /* Standard cursor */
+      position: relative; /* Nødvendig for z-index på overlays */
+    }
+
+    .loadstar-container {
+      display:flex; flex-direction:column; align-items:center;
+      width:100%; height:100%; text-align:center; padding:0;
+    }
+
+    /* Dekorative linjer øverst */
+    .title-line {
+      height:6px; background:#6C6C6C; width:100%; margin:4px 0;
+      border-top:2px solid #A0A0A0; border-bottom:2px solid #404040; /* 3D effekt */
+    }
+    .title-line[style] { height:4px; } /* Tyndere linje */
+
+    .title-wrapper {
+      display:flex; align-items:center; justify-content:center;
+      margin:20px 0 0 0; width:100%;
+    }
+
+    /* Animation for titel farveskift */
+    @keyframes titleColorCycle {
+      0%,100%{color:white;}
+      20%{color:#904040;} /* Rød */
+      40%{color:#AA7448;} /* Brun */
+      60%{color:#68B470;} /* Grøn */
+      80%{color:#7887FF;} /* Blå */
+    }
+
+    /* Animation for regnbue-bjælker puls */
+    @keyframes barPulse {
+      0%,100%{opacity:1;}
+      50%{opacity:0.4;}
+    }
+
+    .rainbow-bars{
+      display:flex;flex-direction:column;margin:0 25px;
+    }
+
+    .rainbow-bar{
+      width:70px;height:9px;margin:1px 0;
+      animation:barPulse 1s infinite ease-in-out; /* Anvend puls animation */
+    }
+    /* Farver til regnbue-bjælker */
+    .rainbow-bar:nth-child(1){background:#904040;}
+    .rainbow-bar:nth-child(2){background:#AA7448;}
+    .rainbow-bar:nth-child(3){background:#FFFF78;} /* Gul */
+    .rainbow-bar:nth-child(4){background:#68B470;}
+    .rainbow-bar:nth-child(5){background:#7887FF;}
+
+    .main-title{
+      font-size:4em; /* Stor titel */
+      text-shadow:3px 3px 0 #404040; /* Skygge for dybde */
+      letter-spacing:2px; white-space:nowrap; /* Undgå linjeskift */
+      animation:titleColorCycle 5s infinite ease-in-out; /* Anvend farveskift animation */
+    }
+
+    .extra-lives-text{
+      color:#7887FF;font-size:1em;margin:4px 0;
+    }
+
+    /* Container til rullende tekst */
+    .scrolling-container{
+      width:100%;overflow:hidden;height:1.2em;margin:4px 0;
+    }
+
+    /* Rullende tekst (marquee) styling */
+    marquee.system-info{
+      display:block; color:#AAAAAA; font-size:0.9em;
+    }
+
+    .subtitle{
+      color:white;font-size:1.3em;margin:30px 0;
+    }
+
+    /* Spil liste styling */
+    #game-list{
+      width:80%; /* Bredde af listen */
+      height:calc(4*2em + 4*7px); /* Viser ca. 4 spil ad gangen */
+      overflow-y:auto; /* Tillad scroll lodret */
+      margin-bottom:40px;
+      scrollbar-width:none; /* Skjul scrollbar (Firefox) */
+    }
+    #game-list::-webkit-scrollbar{display:none;} /* Skjul scrollbar (Chrome, Safari, Edge) */
+
+    .game-item{
+      padding:0.3em 0;text-align:center;position:relative;color:#7887FF;
+      font-size:1.1em;margin:7px 0;height:2em;line-height:2em;
+      transition:color 0.1s; /* Glidende farveovergang */
+    }
+
+    /* Styling for det valgte spil */
+    .game-item.selected{
+      color:#FFFF78; /* Gul farve for valgt */
+    }
+    .game-item.selected::before{
+      content:'>';position:absolute;left:12%;top:50%;transform:translateY(-50%);
+      color:#FFFF78;font-weight:bold;
+    }
+    .game-item.selected::after{
+      content:'<';position:absolute;right:12%;top:50%;transform:translateY(-50%);
+      color:#FFFF78;font-weight:bold;
+    }
+
+    /* Boks til instruktioner */
+    .instructions-box{
+      border:3px solid white;padding:15px 30px;margin:20px 0;
+    }
+    .instructions{
+      color:white;font-size:1em;margin:6px 0;line-height:1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="loadstar-container">
+    <div class="title-line"></div>
+    <div class="title-line" style="height:4px;"></div>
+
+    <div class="title-wrapper">
+      <div class="rainbow-bars">
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+      </div>
+      <div class="main-title">KODECHAMP</div>
+      <div class="rainbow-bars">
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+        <div class="rainbow-bar"></div>
+      </div>
+    </div>
+    <p class="extra-lives-text">PIXELART, PROGRAMMERING OG MASSER AF POWERUPS!</p>
+
+    <div class="scrolling-container">
+      <marquee class="system-info" scrollamount="6" scrolldelay="0" behavior="scroll" direction="left" loop="infinite">
+        Bliv årets KODECHAMP og deltag i årets sejeste konkurrence for 5.-9.kl. i retro spildesign, pixelartgrafik og programmering i Scratch. Vind fede præmier!      Er du pædagog/lærer? Så deltag i voksenkategorien - Tør du?        Skabt med ønske om uendelige ekstraliv til alle!
+      </marquee>
+    </div>
+
+    <div class="title-line" style="height:4px;"></div>
+    <div class="title-line"></div>
+
+    <p class="subtitle">Vælg dit spil:</p>
+    <div id="game-list">
+      <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Bob%20on%20the%20Run2.html">BOB ON THE RUN</div>
+      <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/space%20invaders%20SPILLEMASKINE5.html">SPACE INVADERS</div>
+      <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Rocket-lander%20spillemaskine5.html">ROCKET LANDER</div>
+      <div class="game-item" data-url="https://raw.githack.com/trm0002/Kodechamp/refs/heads/main/Incursio%20SPILLEMASKINE5.html">INCURSIO</div>
+      <div class="game-item" data-url="https://readonly/GitHack/RunningGlizzy.html">RUNNING GLIZZY</div>
+    </div>
+
+    <div class="instructions-box">
+      <p class="instructions">Vælg med Joysticket</p>
+      <p class="instructions">Rød knap = start/afslut spil</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const gameList = document.getElementById('game-list');
+      const gameItems = Array.from(gameList.querySelectorAll('.game-item'));
+      let selectedIndex = 0; // Holder styr på hvilket spil der er valgt
+
+      // Funktion til at opdatere visningen af det valgte spil
+      function updateSelection() {
+        gameItems.forEach((item, i) => {
+          // Tilføj/fjern 'selected' klassen baseret på selectedIndex
+          item.classList.toggle('selected', i === selectedIndex);
+        });
+        // Sørg for at det valgte spil er synligt i scroll-området
+        gameItems[selectedIndex].scrollIntoView({ block: 'nearest' });
+      }
+
+      // Funktion til at starte det valgte spil
+      function launchSelectedGame() {
+        const url = gameItems[selectedIndex].getAttribute('data-url');
+        if (url) {
+          // Åbn spillets URL i en ny fane/vindue
+          window.open(url, '_blank');
+        }
+      }
+
+      // Lyt efter tastetryk (piletaster) for navigation
+      document.addEventListener('keydown', e => {
+        if (['ArrowUp', 'ArrowDown'].includes(e.key)) {
+          e.preventDefault(); // Forhindrer standard browser scroll
+          // Opdater selectedIndex baseret på piletast
+          selectedIndex = e.key === 'ArrowUp' ? Math.max(0, selectedIndex - 1) : Math.min(gameItems.length - 1, selectedIndex + 1);
+          updateSelection(); // Opdater visningen
+        }
+        // TJEK: Overvej om 'Enter' eller en anden tast skal starte spillet
+        // f.eks. if (e.key === 'Enter') { launchSelectedGame(); }
+      });
+
+      // Lyt efter klik for at starte spillet (simulerer "Rød knap")
+      // OBS: Dette lytter på *hele* dokumentet. Kan gøres mere specifikt.
+      document.addEventListener('click', launchSelectedGame);
+
+      // Sæt det første spil som valgt ved start
+      updateSelection();
+    });
+  </script>
+</body>
+</html>
